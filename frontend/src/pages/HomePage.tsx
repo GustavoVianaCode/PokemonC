@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 interface PokemonType {
   type: {
@@ -54,6 +55,7 @@ export default function HomePage() {
   const [filteredPokemon, setFilteredPokemon] = useState<Pokemon[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedGeneration, setSelectedGeneration] = useState(1);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPokemon();
@@ -178,12 +180,13 @@ export default function HomePage() {
             {filteredPokemon.map((pokemon) => (
               <div
                 key={pokemon.id}
-                className="bg-gray-400 rounded-lg p-4 shadow-lg hover:shadow-xl transform transition hover:scale-105 cursor-pointer"
+                onClick={() => navigate(`/pokemon/${pokemon.id}`)}
+                className="bg-gray-400 rounded-lg p-4 shadow-lg p-2 shadow-lg hover:shadow-xl transform transition hover:scale-105 cursor-pointer"
               >
                 <img
                   src={pokemon.sprite}
                   alt={pokemon.name}
-                  className="w-full h-24 object-contain"
+                  className="w-full h-40 object-contain"
                 />
                 <p className="text-center font-pixel text-xs mt-2 text-purple-900">
                   #{pokemon.id.toString().padStart(3, '0')}
