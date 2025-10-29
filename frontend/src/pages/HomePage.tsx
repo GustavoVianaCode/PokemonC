@@ -109,7 +109,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-900 via-purple-800 to-green-600">
+    <div className="min-h-screen bg-gradient-to-b from-black via-purple-950 to-green-700">
       {/* Header */}
       <header className="py-8">
         <h1 className="text-center text-6xl font-pixel text-yellow-400 drop-shadow-lg mb-8">
@@ -145,16 +145,16 @@ export default function HomePage() {
 
       {/* Generation Filter */}
       <div className="container mx-auto px-4 mb-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-full mx-auto">
           <h2 className="text-center text-white font-pixel text-xl mb-4">
             ESCOLHA A GERAÇÃO
           </h2>
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex justify-center gap-3 min-w-max px-4">
             {GENERATIONS.map((gen) => (
               <button
                 key={gen.id}
                 onClick={() => setSelectedGeneration(gen.id)}
-                className={`font-pixel px-4 py-2 rounded-lg shadow-lg transform transition hover:scale-105 ${
+                className={`font-pixel px-4 py-2 rounded-lg shadow-lg transform transition hover:scale-105 whitespace-nowrap ${
                   selectedGeneration === gen.id
                     ? 'bg-yellow-400 text-purple-900'
                     : 'bg-white/80 text-purple-900 hover:bg-white'
@@ -178,7 +178,7 @@ export default function HomePage() {
             {filteredPokemon.map((pokemon) => (
               <div
                 key={pokemon.id}
-                className="bg-white/90 rounded-lg p-4 shadow-lg hover:shadow-xl transform transition hover:scale-105 cursor-pointer"
+                className="bg-gray-400 rounded-lg p-4 shadow-lg hover:shadow-xl transform transition hover:scale-105 cursor-pointer"
               >
                 <img
                   src={pokemon.sprite}
