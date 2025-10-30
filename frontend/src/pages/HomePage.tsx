@@ -111,7 +111,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-purple-950 to-green-700">
+    <div className="min-h-screen bg-gradient-to-b from-black via-purple-950 to-green-700 flex flex-col">
       {/* Header */}
       <header className="py-8">
         <h1 className="text-center text-6xl font-pixel text-yellow-400 drop-shadow-lg mb-8">
@@ -132,12 +132,14 @@ export default function HomePage() {
         </nav>
       </header>
 
-      {/* Search Bar */}
-      <div className="container mx-auto px-4 mb-8">
-        <div className="max-w-2xl mx-auto">
-          <input
-            type="text"
-            placeholder="Buscar Pokémon..."
+      {/* Conteúdo principal */}
+      <main className="flex-grow">
+        {/* Search Bar */}
+        <div className="container mx-auto px-4 mb-8">
+          <div className="max-w-2xl mx-auto">
+            <input
+              type="text"
+              placeholder="Buscar Pokémon..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-6 py-4 rounded-lg text-lg font-pixel border-4 border-yellow-400 focus:outline-none focus:border-yellow-500 shadow-lg"
@@ -209,17 +211,18 @@ export default function HomePage() {
             ))}
           </div>
         )}
-      </div>
+        </div>
 
-      {/* Create Team Button */}
-      <div className="container mx-auto px-4 py-8 text-center">
-        <button className="bg-red-500 hover:bg-red-600 text-white font-pixel px-12 py-4 rounded-lg shadow-lg transform transition hover:scale-105 text-xl">
-          CRIAR NOVO TIME
-        </button>
-      </div>
+        {/* Create Team Button */}
+        <div className="container mx-auto px-4 py-8 text-center">
+          <button className="bg-red-500 hover:bg-red-600 text-white font-pixel px-12 py-4 rounded-lg shadow-lg transform transition hover:scale-105 text-xl">
+            CRIAR NOVO TIME
+          </button>
+        </div>
+      </main>
 
       {/* Footer */}
-      <footer className="bg-purple-950 text-white py-6 mt-8">
+      <footer className="bg-purple-950 text-white py-6 mt-auto">
         <p className="text-center font-pixel text-lg">
           © 2025 Gustavo Viana
         </p>

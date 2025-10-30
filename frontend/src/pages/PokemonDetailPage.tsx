@@ -2,20 +2,23 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import PokemonStats from '../components/PokemonStats';
+import PokemonImage from '../components/PokemonImage';
+import TypeMatchups from '../components/TypeMatchups';
+import EvolutionChain from '../components/EvolutionChain';
+import MegaEvolutions from '../components/MegaEvolutions';
+import { typeMatchups } from '../utils/typeMatchups';
 
 interface TypeInfo {
   type: { name: string };
-}
-
-interface StatInfo {
-  base_stat: number;
-  stat: { name: string };
 }
 
 interface EvolutionData {
   id: number;
   name: string;
   image: string;
+  isMega?: boolean;
+  megaType?: string[];
 }
 
 interface PokemonData {
@@ -33,37 +36,8 @@ interface PokemonData {
     speed: number;
   };
   evolutions: EvolutionData[];
+  megaEvolutions?: EvolutionData[];
 }
-
-const typeColors: Record<string, string> = {
-  normal: 'bg-gray-500', fire: 'bg-red-500', water: 'bg-blue-500',
-  electric: 'bg-yellow-400', grass: 'bg-green-500', ice: 'bg-cyan-300',
-  fighting: 'bg-red-700', poison: 'bg-purple-500', ground: 'bg-yellow-600',
-  flying: 'bg-indigo-400', psychic: 'bg-pink-500', bug: 'bg-lime-500',
-  rock: 'bg-yellow-700', ghost: 'bg-purple-700', dragon: 'bg-indigo-700',
-  dark: 'bg-gray-700', steel: 'bg-gray-500', fairy: 'bg-pink-300',
-};
-
-const typeMatchups: Record<string, Record<string, number>> = {
-  normal: { fighting: 2, ghost: 0 },
-  fire: { water: 2, ground: 2, rock: 2, fire: 0.5, grass: 0.5, ice: 0.5, bug: 0.5, steel: 0.5, fairy: 0.5 },
-  water: { electric: 2, grass: 2, fire: 0.5, water: 0.5, ice: 0.5, steel: 0.5 },
-  electric: { ground: 2, electric: 0.5, flying: 0.5, steel: 0.5 },
-  grass: { fire: 2, ice: 2, poison: 2, flying: 2, bug: 2, water: 0.5, electric: 0.5, grass: 0.5, ground: 0.5 },
-  ice: { fire: 2, fighting: 2, rock: 2, steel: 2, ice: 0.5 },
-  fighting: { flying: 2, psychic: 2, fairy: 2, bug: 0.5, rock: 0.5, dark: 0.5 },
-  poison: { ground: 2, psychic: 2, fighting: 0.5, poison: 0.5, bug: 0.5, grass: 0.5, fairy: 0.5 },
-  ground: { water: 2, ice: 2, grass: 2, poison: 0.5, rock: 0.5, electric: 0 },
-  flying: { electric: 2, ice: 2, rock: 2, fighting: 0.5, bug: 0.5, grass: 0.5, ground: 0 },
-  psychic: { bug: 2, ghost: 2, dark: 2, fighting: 0.5, psychic: 0.5 },
-  bug: { fire: 2, flying: 2, rock: 2, fighting: 0.5, grass: 0.5, ground: 0.5 },
-  rock: { water: 2, grass: 2, fighting: 2, ground: 2, steel: 2, normal: 0.5, fire: 0.5, poison: 0.5, flying: 0.5 },
-  ghost: { ghost: 2, dark: 2, poison: 0.5, bug: 0.5, normal: 0, fighting: 0 },
-  dragon: { ice: 2, dragon: 2, fairy: 2, fire: 0.5, water: 0.5, electric: 0.5, grass: 0.5 },
-  dark: { fighting: 2, bug: 2, fairy: 2, ghost: 0.5, dark: 0.5, psychic: 0 },
-  steel: { fire: 2, fighting: 2, ground: 2, normal: 0.5, grass: 0.5, ice: 0.5, flying: 0.5, psychic: 0.5, bug: 0.5, rock: 0.5, dragon: 0.5, steel: 0.5, fairy: 0.5, poison: 0 },
-  fairy: { poison: 2, steel: 2, fighting: 0.5, bug: 0.5, dark: 0.5, dragon: 0 },
-};
 
 export default function PokemonDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -87,6 +61,8 @@ export default function PokemonDetailPage() {
 
       const evolutions = await parseEvolutionChain(evolutionResponse.data.chain);
 
+      const megaEvolutions = await fetchMegaEvolutions(data.name);
+
       const pokemonInfo: PokemonData = {
         id: data.id,
         name: data.name,
@@ -102,6 +78,7 @@ export default function PokemonDetailPage() {
           speed: data.stats[5].base_stat,
         },
         evolutions,
+        megaEvolutions,
       };
 
       setPokemon(pokemonInfo);
@@ -110,6 +87,41 @@ export default function PokemonDetailPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchMegaEvolutions = async (pokemonName: string): Promise<EvolutionData[]> => {
+    const megas: EvolutionData[] = [];
+    
+    try {
+      // Tentar buscar Mega evolução padrão
+      const megaVariants = ['mega', 'mega-x', 'mega-y'];
+      
+      for (const variant of megaVariants) {
+        try {
+          const megaName = `${pokemonName}-${variant}`;
+          const megaResponse = await axios.get(`https://pokeapi.co/api/v2/pokemon/${megaName}`);
+          const megaData = megaResponse.data;
+          
+          const types: string[] = megaData.types.map((t: TypeInfo) => t.type.name);
+          
+          megas.push({
+            id: megaData.id,
+            name: megaData.name,
+            image: megaData.sprites.other['official-artwork'].front_default || 
+                   megaData.sprites.front_default,
+            isMega: true,
+            megaType: types,
+          });
+        } catch (err) {
+          // Mega não existe para esse Pokémon/variante
+          continue;
+        }
+      }
+    } catch (error) {
+      console.log('Nenhuma mega evolução encontrada');
+    }
+    
+    return megas;
   };
 
   const parseEvolutionChain = async (chain: any): Promise<EvolutionData[]> => {
@@ -124,6 +136,7 @@ export default function PokemonDetailPage() {
         id: pokemonId,
         name: current.species.name,
         image: sprite,
+        isMega: false,
       });
 
       current = current.evolves_to[0];
@@ -135,6 +148,7 @@ export default function PokemonDetailPage() {
   const calculateTypeEffectiveness = (defenderTypes: string[]) => {
     const weaknesses: Record<string, number> = {};
     const resistances: Record<string, number> = {};
+    const advantages: Record<string, number> = {};
 
     defenderTypes.forEach(defenderType => {
       const matchup = typeMatchups[defenderType];
@@ -149,7 +163,21 @@ export default function PokemonDetailPage() {
       }
     });
 
-    return { weaknesses, resistances };
+    // Calcular vantagens (contra quais tipos o Pokémon causa dano aumentado)
+    const allTypes = Object.keys(typeMatchups);
+    allTypes.forEach(targetType => {
+      const targetMatchup = typeMatchups[targetType];
+      if (targetMatchup) {
+        defenderTypes.forEach(ourType => {
+          // Se o tipo alvo tem fraqueza ao nosso tipo
+          if (targetMatchup[ourType] && targetMatchup[ourType] > 1) {
+            advantages[targetType] = Math.max(advantages[targetType] || 0, targetMatchup[ourType]);
+          }
+        });
+      }
+    });
+
+    return { weaknesses, resistances, advantages };
   };
 
   if (loading) {
@@ -168,21 +196,46 @@ export default function PokemonDetailPage() {
     );
   }
 
-  const { weaknesses, resistances } = calculateTypeEffectiveness(pokemon.types);
+  const { weaknesses, resistances, advantages } = calculateTypeEffectiveness(pokemon.types);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-purple-950 to-green-700 py-8">
-      <div className="container mx-auto px-4">
-        {/* Botão Voltar */}
-        <button
-          onClick={() => navigate('/')}
-          className="bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-pixel px-6 py-3 rounded-lg shadow-lg mb-8"
-        >
-          ← VOLTAR
-        </button>
+    <div className="min-h-screen bg-gradient-to-b from-black via-purple-950 to-green-700 flex flex-col">
+      {/* Header */}
+      <header className="py-8">
+        <h1 className="text-center text-6xl font-pixel text-yellow-400 drop-shadow-lg mb-8">
+          ChampionDex
+        </h1>
+        
+        {/* Navigation */}
+        <nav className="flex justify-center gap-4 mb-8">
+          <button 
+            onClick={() => navigate('/')}
+            className="bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-pixel px-6 py-3 rounded-lg shadow-lg transform transition hover:scale-105"
+          >
+            HOME
+          </button>
+          <button className="bg-blue-500 hover:bg-blue-600 text-white font-pixel px-6 py-3 rounded-lg shadow-lg transform transition hover:scale-105">
+            CRIAR TIME
+          </button>
+          <button className="bg-green-500 hover:bg-green-600 text-white font-pixel px-6 py-3 rounded-lg shadow-lg transform transition hover:scale-105">
+            MEUS TIMES
+          </button>
+        </nav>
+      </header>
 
-        <div className="bg-white/90 rounded-lg p-8 shadow-2xl">
-          {/* Header */}
+      {/* Conteúdo principal */}
+      <main className="flex-grow">
+        <div className="container mx-auto px-4">
+          {/* Botão Voltar */}
+          <button
+            onClick={() => navigate('/')}
+            className="bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-pixel px-6 py-3 rounded-lg shadow-lg mb-8"
+          >
+            ← VOLTAR
+          </button>
+
+        <div className="bg-white/90 rounded-lg p-8 shadow-2xl mb-12">
+          {/* Header - Nome e ID */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-pixel text-purple-900 capitalize mb-2">
               {pokemon.name}
@@ -192,128 +245,36 @@ export default function PokemonDetailPage() {
             </p>
           </div>
 
-          {/* Imagem e Shiny Toggle */}
-          <div className="flex justify-center items-center gap-4 mb-8">
-            <div className="relative">
-              <img
-                src={isShiny ? pokemon.shinySprite : pokemon.normalSprite}
-                alt={pokemon.name}
-                className="w-64 h-64 object-contain"
-              />
-              <button
-                onClick={() => setIsShiny(!isShiny)}
-                className="absolute top-4 right-4 bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-pixel px-4 py-2 rounded-lg shadow-lg text-sm"
-              >
-                ✨ {isShiny ? 'NORMAL' : 'SHINY'}
-              </button>
-            </div>
+          {/* Layout Principal: Stats (Esquerda) + Pokémon (Centro) + Type Matchups (Direita) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <PokemonStats stats={pokemon.baseStats} />
+            <PokemonImage
+              normalSprite={pokemon.normalSprite}
+              shinySprite={pokemon.shinySprite}
+              name={pokemon.name}
+              types={pokemon.types}
+              isShiny={isShiny}
+              setIsShiny={setIsShiny}
+            />
+            <TypeMatchups
+              advantages={advantages}
+              weaknesses={weaknesses}
+              resistances={resistances}
+            />
           </div>
 
-          {/* Tipos */}
-          <div className="flex justify-center gap-3 mb-8">
-            {pokemon.types.map((type) => (
-              <span
-                key={type}
-                className={`${typeColors[type]} text-white font-pixel px-6 py-2 rounded-lg uppercase shadow-lg`}
-              >
-                {type}
-              </span>
-            ))}
-          </div>
-
-          {/* Stats Base */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-pixel text-purple-900 mb-4 text-center">
-              STATUS BASE
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {Object.entries(pokemon.baseStats).map(([stat, value]) => (
-                <div key={stat} className="bg-purple-100 rounded-lg p-4">
-                  <p className="font-pixel text-xs text-purple-900 uppercase mb-2">
-                    {stat.replace('sp', 'Sp. ')}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-grow bg-gray-300 rounded-full h-4">
-                      <div
-                        className="bg-green-500 h-4 rounded-full"
-                        style={{ width: `${(value / 255) * 100}%` }}
-                      />
-                    </div>
-                    <span className="font-pixel text-sm text-purple-900 min-w-[40px]">
-                      {value}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Linha Evolutiva */}
-          {pokemon.evolutions.length > 1 && (
-            <div className="mb-8">
-              <h2 className="text-2xl font-pixel text-purple-900 mb-4 text-center">
-                LINHA EVOLUTIVA
-              </h2>
-              <div className="flex justify-center items-center gap-6 flex-wrap">
-                {pokemon.evolutions.map((evo, index) => (
-                  <div key={evo.id} className="flex items-center">
-                    <div
-                      className="bg-purple-100 rounded-lg p-4 cursor-pointer hover:shadow-xl transition"
-                      onClick={() => navigate(`/pokemon/${evo.id}`)}
-                    >
-                      <img src={evo.image} alt={evo.name} className="w-24 h-24" />
-                      <p className="text-center font-pixel text-xs text-purple-900 capitalize mt-2">
-                        {evo.name}
-                      </p>
-                    </div>
-                    {index < pokemon.evolutions.length - 1 && (
-                      <span className="text-4xl text-purple-900 mx-4">→</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Fraquezas */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-pixel text-purple-900 mb-4 text-center">
-              FRAQUEZAS
-            </h2>
-            <div className="flex justify-center gap-3 flex-wrap">
-              {Object.entries(weaknesses).map(([type, multiplier]) => (
-                <div key={type} className="text-center">
-                  <span className={`${typeColors[type]} text-white font-pixel px-4 py-2 rounded-lg uppercase shadow-lg block mb-2`}>
-                    {type}
-                  </span>
-                  <span className="font-pixel text-sm text-red-600">
-                    {multiplier}x
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Resistências */}
-          <div>
-            <h2 className="text-2xl font-pixel text-purple-900 mb-4 text-center">
-              RESISTÊNCIAS
-            </h2>
-            <div className="flex justify-center gap-3 flex-wrap">
-              {Object.entries(resistances).map(([type, multiplier]) => (
-                <div key={type} className="text-center">
-                  <span className={`${typeColors[type]} text-white font-pixel px-4 py-2 rounded-lg uppercase shadow-lg block mb-2`}>
-                    {type}
-                  </span>
-                  <span className="font-pixel text-sm text-green-600">
-                    {multiplier}x
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <EvolutionChain evolutions={pokemon.evolutions} />
+          <MegaEvolutions megaEvolutions={pokemon.megaEvolutions} />
         </div>
-      </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-purple-950 text-white py-6 mt-auto">
+        <p className="text-center font-pixel text-lg">
+          © 2025 Gustavo Viana
+        </p>
+      </footer>
     </div>
   );
 }
