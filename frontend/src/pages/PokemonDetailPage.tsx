@@ -21,6 +21,13 @@ interface EvolutionData {
   megaType?: string[];
 }
 
+interface PokemonVariety {
+  name: string;
+  displayName: string;
+  isDefault: boolean;
+  url: string;
+}
+
 interface PokemonData {
   id: number;
   name: string;
@@ -45,6 +52,8 @@ export default function PokemonDetailPage() {
   const [pokemon, setPokemon] = useState<PokemonData | null>(null);
   const [isShiny, setIsShiny] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [varieties, setVarieties] = useState<PokemonVariety[]>([]);
+  const [selectedVariety, setSelectedVariety] = useState<string>('');
 
   useEffect(() => {
     loadPokemonDetails();
@@ -63,11 +72,50 @@ export default function PokemonDetailPage() {
 
       const megaEvolutions = await fetchMegaEvolutions(data.name);
 
+      // Buscar formas alternativas
+      const varietiesData = speciesResponse.data.varieties;
+      const formattedVarieties: PokemonVariety[] = varietiesData.map((variety: any) => ({
+        name: variety.pokemon.name,
+        displayName: variety.pokemon.name.replace(/-/g, ' ').toUpperCase(),
+        isDefault: variety.is_default,
+        url: variety.pokemon.url,
+      }));
+      
+      setVarieties(formattedVarieties);
+      setSelectedVariety(data.name); // Selecionar a forma atual
+
+      // Detectar se é Mega para usar sprites consistentes
+      const isMega = data.name.includes('-mega');
+
+      let normalSprite, shinySprite;
+      
+      if (isMega) {
+        // Mega: SEMPRE usar 'home' (256x256) para ter consistência entre normal e shiny
+        normalSprite = 
+          data.sprites.other.home?.front_default ||
+          data.sprites.front_default;
+
+        shinySprite = 
+          data.sprites.other.home?.front_shiny ||
+          data.sprites.front_shiny;
+      } else {
+        // Pokémon normal: usar 'official-artwork' (melhor qualidade - 475x475)
+        normalSprite = 
+          data.sprites.other['official-artwork']?.front_default ||
+          data.sprites.other.home?.front_default ||
+          data.sprites.front_default;
+
+        shinySprite = 
+          data.sprites.other['official-artwork']?.front_shiny ||
+          data.sprites.other.home?.front_shiny ||
+          data.sprites.front_shiny;
+      }
+
       const pokemonInfo: PokemonData = {
         id: data.id,
         name: data.name,
-        normalSprite: data.sprites.other['official-artwork'].front_default,
-        shinySprite: data.sprites.other['official-artwork'].front_shiny,
+        normalSprite,
+        shinySprite,
         types: data.types.map((t: TypeInfo) => t.type.name),
         baseStats: {
           hp: data.stats[0].base_stat,
@@ -104,11 +152,17 @@ export default function PokemonDetailPage() {
           
           const types: string[] = megaData.types.map((t: TypeInfo) => t.type.name);
           
+          // Priorizar 'home' para Megas (256x256) - melhor consistência
+          const sprite = 
+            megaData.sprites.other.home?.front_default ||
+            megaData.sprites.other['official-artwork']?.front_default ||
+            megaData.sprites.other.showdown?.front_default ||
+            megaData.sprites.front_default;
+          
           megas.push({
             id: megaData.id,
             name: megaData.name,
-            image: megaData.sprites.other['official-artwork'].front_default || 
-                   megaData.sprites.front_default,
+            image: sprite,
             isMega: true,
             megaType: types,
           });
@@ -143,6 +197,70 @@ export default function PokemonDetailPage() {
     }
 
     return evolutions;
+  };
+
+  const handleVarietyChange = async (varietyName: string) => {
+    try {
+      setLoading(true);
+      setSelectedVariety(varietyName);
+      
+      // Buscar dados da forma selecionada
+      const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${varietyName}`);
+      const data = response.data;
+
+      // Detectar se é Mega para usar sprites consistentes
+      const isMega = varietyName.includes('-mega');
+
+      let normalSprite, shinySprite;
+      
+      if (isMega) {
+        // Mega: SEMPRE usar 'home' (256x256) para ter consistência entre normal e shiny
+        normalSprite = 
+          data.sprites.other.home?.front_default ||
+          data.sprites.front_default;
+
+        shinySprite = 
+          data.sprites.other.home?.front_shiny ||
+          data.sprites.front_shiny;
+      } else {
+        // Pokémon normal: usar 'official-artwork' (melhor qualidade - 475x475)
+        normalSprite = 
+          data.sprites.other['official-artwork']?.front_default ||
+          data.sprites.other.home?.front_default ||
+          data.sprites.front_default;
+
+        shinySprite = 
+          data.sprites.other['official-artwork']?.front_shiny ||
+          data.sprites.other.home?.front_shiny ||
+          data.sprites.front_shiny;
+      }
+
+      // Atualizar pokemon mantendo evoluções e mega evoluções
+      if (pokemon) {
+        const updatedPokemon: PokemonData = {
+          ...pokemon,
+          id: data.id,
+          name: data.name,
+          normalSprite,
+          shinySprite,
+          types: data.types.map((t: TypeInfo) => t.type.name),
+          baseStats: {
+            hp: data.stats[0].base_stat,
+            attack: data.stats[1].base_stat,
+            defense: data.stats[2].base_stat,
+            spAttack: data.stats[3].base_stat,
+            spDefense: data.stats[4].base_stat,
+            speed: data.stats[5].base_stat,
+          },
+        };
+
+        setPokemon(updatedPokemon);
+      }
+    } catch (error) {
+      console.error('Erro ao trocar forma:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const calculateTypeEffectiveness = (defenderTypes: string[]) => {
@@ -214,10 +332,16 @@ export default function PokemonDetailPage() {
           >
             HOME
           </button>
-          <button className="bg-blue-500 hover:bg-blue-600 text-white font-pixel px-6 py-3 rounded-lg shadow-lg transform transition hover:scale-105">
+          <button 
+            onClick={() => navigate('/criar-time')}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-pixel px-6 py-3 rounded-lg shadow-lg transform transition hover:scale-105"
+          >
             CRIAR TIME
           </button>
-          <button className="bg-green-500 hover:bg-green-600 text-white font-pixel px-6 py-3 rounded-lg shadow-lg transform transition hover:scale-105">
+          <button 
+            onClick={() => navigate('/meus-times')}
+            className="bg-green-500 hover:bg-green-600 text-white font-pixel px-6 py-3 rounded-lg shadow-lg transform transition hover:scale-105"
+          >
             MEUS TIMES
           </button>
         </nav>
@@ -234,16 +358,36 @@ export default function PokemonDetailPage() {
             ← VOLTAR
           </button>
 
-        <div className="bg-white/90 rounded-lg p-8 shadow-2xl mb-12">
+        <div className="bg-purple-900/40 backdrop-blur-sm rounded-lg p-8 shadow-2xl mb-12 border-2 border-purple-500/50">
           {/* Header - Nome e ID */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-pixel text-purple-900 capitalize mb-2">
+            <h1 className="text-4xl font-pixel text-yellow-400 capitalize mb-2 drop-shadow-lg">
               {pokemon.name}
             </h1>
-            <p className="text-2xl font-pixel text-gray-600">
+            <p className="text-2xl font-pixel text-purple-300">
               #{pokemon.id.toString().padStart(3, '0')}
             </p>
           </div>
+
+          {/* Selector de Formas Alternativas */}
+          {varieties.length > 1 && (
+            <div className="text-center mb-8">
+              <label className="font-pixel text-purple-200 text-sm mr-3">
+                Forma:
+              </label>
+              <select
+                value={selectedVariety}
+                onChange={(e) => handleVarietyChange(e.target.value)}
+                className="font-pixel bg-purple-800/50 text-yellow-400 px-6 py-3 rounded-lg border-2 border-purple-500/50 hover:bg-purple-700/50 transition cursor-pointer"
+              >
+                {varieties.map((variety) => (
+                  <option key={variety.name} value={variety.name}>
+                    {variety.displayName} {variety.isDefault && '(ORIGINAL)'}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Layout Principal: Stats (Esquerda) + Pokémon (Centro) + Type Matchups (Direita) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
@@ -263,8 +407,22 @@ export default function PokemonDetailPage() {
             />
           </div>
 
-          <EvolutionChain evolutions={pokemon.evolutions} />
-          <MegaEvolutions megaEvolutions={pokemon.megaEvolutions} />
+          {/* Linha Evolutiva e Mega Evoluções lado a lado */}
+          {(pokemon.evolutions.length > 1 || (pokemon.megaEvolutions && pokemon.megaEvolutions.length > 0)) && (
+            <div className="border-t-2 border-purple-500/30 pt-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* ESQUERDA: Linha Evolutiva */}
+                {pokemon.evolutions.length > 1 && (
+                  <EvolutionChain evolutions={pokemon.evolutions} />
+                )}
+
+                {/* DIREITA: Mega Evoluções */}
+                {pokemon.megaEvolutions && pokemon.megaEvolutions.length > 0 && (
+                  <MegaEvolutions megaEvolutions={pokemon.megaEvolutions} />
+                )}
+              </div>
+            </div>
+          )}
         </div>
         </div>
       </main>

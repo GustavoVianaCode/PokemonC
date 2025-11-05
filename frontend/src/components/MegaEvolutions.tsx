@@ -21,30 +21,30 @@ export default function MegaEvolutions({ megaEvolutions }: MegaEvolutionsProps) 
   }
 
   return (
-    <div className="border-t-2 border-pink-300 pt-8 mt-8">
-      <h2 className="text-2xl font-pixel text-pink-600 mb-6 text-center">
+    <div>
+      <h2 className="text-2xl font-pixel text-pink-400 mb-6 text-center drop-shadow-lg">
         MEGA EVOLUÇÕES
       </h2>
       <div className="flex justify-center items-center gap-6 flex-wrap">
         {megaEvolutions.map((mega) => (
           <div
             key={mega.id}
-            className="bg-gradient-to-br from-purple-200 to-pink-200 rounded-lg p-4 cursor-pointer hover:shadow-2xl transition transform hover:scale-105 relative"
+            className="bg-gradient-to-br from-purple-600/50 to-pink-600/50 backdrop-blur-sm rounded-lg p-4 shadow-xl border-4 border-pink-400/50 cursor-pointer hover:shadow-2xl transition transform hover:scale-105 relative"
             onClick={() => navigate(`/pokemon/${mega.id}`)}
           >
-            <div className="absolute top-2 right-2 bg-pink-600 text-white font-pixel text-[8px] px-2 py-1 rounded shadow-lg">
+            <div className="absolute top-2 right-2 bg-pink-600 text-white font-pixel text-[8px] px-2 py-1 rounded-full shadow-lg">
               MEGA
             </div>
             <img src={mega.image} alt={mega.name} className="w-32 h-32" />
-            <p className="text-center font-pixel text-xs text-purple-900 capitalize mt-2">
-              {mega.name}
+            <p className="text-center font-pixel text-xs text-purple-100 capitalize mt-2">
+              {mega.name.replace('-', ' ')}
             </p>
             {mega.megaType && (
               <div className="flex justify-center gap-1 mt-2">
                 {mega.megaType.map((type) => (
                   <span
                     key={type}
-                    className={`${typeColors[type]} text-white font-pixel px-2 py-1 rounded text-[8px] uppercase`}
+                    className={`${typeColors[type]} text-white font-pixel px-2 py-1 rounded text-[8px] uppercase shadow-lg border border-white/30`}
                   >
                     {type}
                   </span>
