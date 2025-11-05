@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { typeColors } from '../utils/typeColors';
+import { MovesetConfig } from '../components/MovesetModal';
 
 interface TeamMember {
   id: number;
   name: string;
   sprite: string;
   types: string[];
+  moveset?: MovesetConfig;
 }
 
 interface SavedTeam {
@@ -43,20 +45,43 @@ export default function MyTeamsPage() {
   };
 
   const exportTeam = (team: SavedTeam) => {
-    const teamText = `
-🏆 ${team.name}
+    // Formato Pokémon Showdown
+    const formatName = (name: string) => {
+      return name.split('-').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ');
+    };
+
+    const showdownFormat = team.members.map(member => {
+      if (!member.moveset || member.moveset.moves.length === 0) {
+        // Formato simples sem moveset
+        return `${formatName(member.name)} (#${member.id})
+Tipos: ${member.types.join(', ').toUpperCase()}`;
+      }
+
+      // Formato completo estilo Showdown
+      const { moveset } = member;
+      const displayName = moveset.nickname || formatName(member.name);
+      const itemLine = moveset.item !== 'None' ? ` @ ${moveset.item}` : '';
+      
+      return `${displayName}${itemLine}
+Ability: ${formatName(moveset.ability)}${moveset.shiny ? '\nShiny: Yes' : ''}
+Tera Type: ${moveset.teraType.charAt(0).toUpperCase() + moveset.teraType.slice(1)}
+${moveset.nature} Nature
+${moveset.moves.map(move => '- ' + formatName(move)).join('\n')}`;
+    }).join('\n\n');
+
+    const teamText = `🏆 ${team.name}
 ━━━━━━━━━━━━━━━━━━━━
-${team.members.map((m, i) => 
-  `${i + 1}. ${m.name.toUpperCase()} (#${m.id})
-   Tipos: ${m.types.join(', ').toUpperCase()}`
-).join('\n')}
+
+${showdownFormat}
+
 ━━━━━━━━━━━━━━━━━━━━
 Criado em: ${new Date(team.createdAt).toLocaleDateString('pt-BR')}
-Total: ${team.members.length} Pokémon
-    `.trim();
+Total: ${team.members.length} Pokémon`;
 
     navigator.clipboard.writeText(teamText);
-    alert('✅ Time copiado para a área de transferência!');
+    alert('✅ Time copiado para a área de transferência (formato Showdown)!');
   };
 
   const getTeamTypes = (team: SavedTeam) => {
@@ -251,7 +276,7 @@ Total: ${team.members.length} Pokémon
                             onClick={() => navigate(`/pokemon/${member.id}`)}
                             className="bg-purple-800/50 border-2 border-purple-500/30 hover:border-yellow-400 rounded-lg p-4 transition cursor-pointer group"
                           >
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-4 mb-3">
                               <div className="relative">
                                 <img
                                   src={member.sprite}
@@ -261,10 +286,15 @@ Total: ${team.members.length} Pokémon
                                 <div className="absolute -top-2 -left-2 bg-yellow-400 text-purple-900 font-pixel text-xs w-6 h-6 rounded-full flex items-center justify-center shadow-lg">
                                   {index + 1}
                                 </div>
+                                {member.moveset?.shiny && (
+                                  <div className="absolute -bottom-1 -right-1 text-xl">
+                                    ✨
+                                  </div>
+                                )}
                               </div>
                               <div className="flex-grow">
                                 <h5 className="font-pixel text-purple-100 text-sm capitalize mb-1 group-hover:text-yellow-400 transition">
-                                  {member.name}
+                                  {member.moveset?.nickname || member.name}
                                 </h5>
                                 <p className="font-pixel text-purple-400 text-xs mb-2">
                                   #{member.id.toString().padStart(3, '0')}
@@ -281,6 +311,38 @@ Total: ${team.members.length} Pokémon
                                 </div>
                               </div>
                             </div>
+
+                            {/* Moveset Info */}
+                            {member.moveset && member.moveset.moves.length > 0 && (
+                              <div className="bg-purple-900/50 rounded p-2 border border-purple-500/30">
+                                <div className="grid grid-cols-2 gap-1 mb-2">
+                                  <div>
+                                    <p className="font-pixel text-purple-300 text-[8px]">Item:</p>
+                                    <p className="font-pixel text-yellow-400 text-[9px]">{member.moveset.item}</p>
+                                  </div>
+                                  <div>
+                                    <p className="font-pixel text-purple-300 text-[8px]">Nature:</p>
+                                    <p className="font-pixel text-yellow-400 text-[9px]">{member.moveset.nature}</p>
+                                  </div>
+                                </div>
+                                <div className="mb-1">
+                                  <p className="font-pixel text-purple-300 text-[8px]">Ability:</p>
+                                  <p className="font-pixel text-yellow-400 text-[9px] capitalize">
+                                    {member.moveset.ability.split('-').join(' ')}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="font-pixel text-purple-300 text-[8px] mb-1">Moves:</p>
+                                  <div className="space-y-0.5">
+                                    {member.moveset.moves.map((move, i) => (
+                                      <p key={i} className="font-pixel text-purple-200 text-[8px]">
+                                        • {move.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                                      </p>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
