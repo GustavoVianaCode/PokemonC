@@ -268,25 +268,25 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-purple-950 to-green-700 flex flex-col">
       {/* Header */}
-      <header className="py-8">
-        <h1 className="text-center text-6xl font-pixel text-yellow-400 drop-shadow-lg mb-8">
+      <header className="py-4">
+        <h1 className="text-center text-4xl font-pixel text-yellow-400 drop-shadow-lg mb-4">
           ChampionDex
         </h1>
         
         {/* Navigation */}
-        <nav className="flex justify-center gap-4 mb-8">
-          <button className="bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-pixel px-6 py-3 rounded-lg shadow-lg transform transition hover:scale-105">
+        <nav className="flex justify-center gap-3 mb-4">
+          <button className="bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-pixel px-5 py-2 rounded-lg shadow-lg transform transition hover:scale-105 text-sm">
             HOME
           </button>
           <button 
             onClick={() => navigate('/criar-time')}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-pixel px-6 py-3 rounded-lg shadow-lg transform transition hover:scale-105"
+            className="bg-blue-500 hover:bg-blue-600 text-white font-pixel px-5 py-2 rounded-lg shadow-lg transform transition hover:scale-105 text-sm"
           >
             CRIAR TIME
           </button>
           <button 
             onClick={() => navigate('/meus-times')}
-            className="bg-green-500 hover:bg-green-600 text-white font-pixel px-6 py-3 rounded-lg shadow-lg transform transition hover:scale-105"
+            className="bg-green-500 hover:bg-green-600 text-white font-pixel px-5 py-2 rounded-lg shadow-lg transform transition hover:scale-105 text-sm"
           >
             MEUS TIMES
           </button>
@@ -296,7 +296,7 @@ export default function HomePage() {
       {/* Conteúdo principal */}
       <main className="flex-grow">
         {/* Search Bar */}
-        <div className="container mx-auto px-4 mb-8">
+        <div className="container mx-auto px-4 mb-6">
           <div className="max-w-2xl mx-auto">
             <input
               type="text"
@@ -309,17 +309,17 @@ export default function HomePage() {
       </div>
 
       {/* Generation Filter */}
-      <div className="container mx-auto px-4 mb-8">
+      <div className="container mx-auto px-4 mb-6">
         <div className="max-w-full mx-auto">
-          <h2 className="text-center text-white font-pixel text-xl mb-4">
+          <h2 className="text-center text-white font-pixel text-lg mb-3">
             ESCOLHA A GERAÇÃO
           </h2>
-          <div className="flex justify-center gap-3 min-w-max px-4">
+          <div className="flex justify-center gap-2 min-w-max px-4">
             {GENERATIONS.map((gen) => (
               <button
                 key={gen.id}
                 onClick={() => setSelectedGeneration(gen.id)}
-                className={`font-pixel px-4 py-2 rounded-lg shadow-lg transform transition hover:scale-105 whitespace-nowrap ${
+                className={`font-pixel px-3 py-1.5 rounded-lg shadow-lg transform transition hover:scale-105 whitespace-nowrap text-sm ${
                   selectedGeneration === gen.id
                     ? 'bg-yellow-400 text-purple-900'
                     : 'bg-white/80 text-purple-900 hover:bg-white'
@@ -333,15 +333,15 @@ export default function HomePage() {
       </div>
 
       {/* Game Filter */}
-      <div className="container mx-auto px-4 mb-8">
+      <div className="container mx-auto px-4 mb-6">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-center text-white font-pixel text-xl mb-4">
+          <h2 className="text-center text-white font-pixel text-lg mb-3">
             OU ESCOLHA UM JOGO
           </h2>
           <select
             value={selectedGame}
             onChange={(e) => handleGameSelect(e.target.value)}
-            className="w-full px-6 py-4 rounded-lg text-lg font-pixel border-4 border-blue-500 focus:outline-none focus:border-blue-600 shadow-lg bg-white text-purple-900"
+            className="w-full px-4 py-3 rounded-lg text-base font-pixel border-4 border-blue-500 focus:outline-none focus:border-blue-600 shadow-lg bg-white text-purple-900"
           >
             <option value="">🎮 Todos os Jogos (Filtrar por Geração)</option>
             
@@ -402,30 +402,30 @@ export default function HomePage() {
             CARREGANDO POKÉMON...
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-1.5">
             {filteredPokemon.map((pokemon) => (
               <div
                 key={pokemon.id}
-                className="bg-gray-400 rounded-lg p-4 shadow-lg p-2 shadow-lg hover:shadow-xl transform transition hover:scale-105 relative"
+                className="bg-gray-400 rounded-lg p-1 shadow-lg hover:shadow-xl transform transition hover:scale-105 relative"
               >
                 <div onClick={() => navigate(`/pokemon/${pokemon.id}`)} className="cursor-pointer">
                   <img
                     src={pokemon.sprite}
                     alt={pokemon.name}
-                    className="w-full h-40 object-contain"
+                    className="w-full aspect-square object-contain"
                   />
-                  <p className="text-center font-pixel text-xs mt-2 text-purple-900">
+                  <p className="text-center font-pixel text-[7px] mt-1 text-purple-900">
                     #{pokemon.id.toString().padStart(3, '0')}
                   </p>
-                  <p className="text-center font-pixel text-xs text-purple-900 capitalize mb-2">
+                  <p className="text-center font-pixel text-[7px] text-purple-900 capitalize mb-1">
                     {pokemon.name}
                   </p>
                   {/* Types */}
-                  <div className="flex justify-center gap-1 flex-wrap">
+                  <div className="flex justify-center gap-0.5 flex-wrap">
                     {pokemon.types.map((type) => (
                       <span
                         key={type}
-                        className={`${TYPE_COLORS[type]} text-white text-[8px] font-pixel px-2 py-1 rounded uppercase`}
+                        className={`${TYPE_COLORS[type]} text-white text-[6px] font-pixel px-1 py-0.5 rounded uppercase`}
                       >
                         {type}
                       </span>
@@ -440,7 +440,7 @@ export default function HomePage() {
                       e.stopPropagation();
                       fetchVarieties(pokemon.id);
                     }}
-                    className="absolute top-2 right-2 bg-purple-600 hover:bg-purple-700 text-white text-[8px] font-pixel px-2 py-1 rounded shadow-lg transition transform hover:scale-110"
+                    className="absolute top-1 right-1 bg-purple-600 hover:bg-purple-700 text-white text-[6px] font-pixel px-1 py-0.5 rounded shadow-lg transition transform hover:scale-110"
                   >
                     🔄 +{pokemon.varietyCount}
                   </button>
@@ -452,8 +452,8 @@ export default function HomePage() {
         </div>
 
         {/* Create Team Button */}
-        <div className="container mx-auto px-4 py-8 text-center">
-          <button className="bg-red-500 hover:bg-red-600 text-white font-pixel px-12 py-4 rounded-lg shadow-lg transform transition hover:scale-105 text-xl">
+        <div className="container mx-auto px-4 py-6 text-center">
+          <button className="bg-red-500 hover:bg-red-600 text-white font-pixel px-10 py-3 rounded-lg shadow-lg transform transition hover:scale-105 text-lg">
             CRIAR NOVO TIME
           </button>
         </div>

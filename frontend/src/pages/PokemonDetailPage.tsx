@@ -319,28 +319,28 @@ export default function PokemonDetailPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-purple-950 to-green-700 flex flex-col">
       {/* Header */}
-      <header className="py-8">
-        <h1 className="text-center text-6xl font-pixel text-yellow-400 drop-shadow-lg mb-8">
+      <header className="py-4">
+        <h1 className="text-center text-4xl font-pixel text-yellow-400 drop-shadow-lg mb-4">
           ChampionDex
         </h1>
         
         {/* Navigation */}
-        <nav className="flex justify-center gap-4 mb-8">
+        <nav className="flex justify-center gap-3 mb-4">
           <button 
             onClick={() => navigate('/')}
-            className="bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-pixel px-6 py-3 rounded-lg shadow-lg transform transition hover:scale-105"
+            className="bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-pixel px-5 py-2 rounded-lg shadow-lg transform transition hover:scale-105 text-sm"
           >
             HOME
           </button>
           <button 
             onClick={() => navigate('/criar-time')}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-pixel px-6 py-3 rounded-lg shadow-lg transform transition hover:scale-105"
+            className="bg-blue-500 hover:bg-blue-600 text-white font-pixel px-5 py-2 rounded-lg shadow-lg transform transition hover:scale-105 text-sm"
           >
             CRIAR TIME
           </button>
           <button 
             onClick={() => navigate('/meus-times')}
-            className="bg-green-500 hover:bg-green-600 text-white font-pixel px-6 py-3 rounded-lg shadow-lg transform transition hover:scale-105"
+            className="bg-green-500 hover:bg-green-600 text-white font-pixel px-5 py-2 rounded-lg shadow-lg transform transition hover:scale-105 text-sm"
           >
             MEUS TIMES
           </button>
@@ -353,32 +353,32 @@ export default function PokemonDetailPage() {
           {/* Botão Voltar */}
           <button
             onClick={() => navigate('/')}
-            className="bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-pixel px-6 py-3 rounded-lg shadow-lg mb-8"
+            className="bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-pixel px-4 py-2 rounded-lg shadow-lg mb-4 text-sm"
           >
             ← VOLTAR
           </button>
 
-        <div className="bg-purple-900/40 backdrop-blur-sm rounded-lg p-8 shadow-2xl mb-12 border-2 border-purple-500/50">
+        <div className="max-w-5xl mx-auto bg-purple-900/40 backdrop-blur-sm rounded-lg p-4 shadow-2xl mb-8 border-2 border-purple-500/50">
           {/* Header - Nome e ID */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-pixel text-yellow-400 capitalize mb-2 drop-shadow-lg">
+          <div className="text-center mb-4">
+            <h1 className="text-3xl font-pixel text-yellow-400 capitalize mb-1 drop-shadow-lg">
               {pokemon.name}
             </h1>
-            <p className="text-2xl font-pixel text-purple-300">
+            <p className="text-lg font-pixel text-purple-300">
               #{pokemon.id.toString().padStart(3, '0')}
             </p>
           </div>
 
           {/* Selector de Formas Alternativas */}
           {varieties.length > 1 && (
-            <div className="text-center mb-8">
-              <label className="font-pixel text-purple-200 text-sm mr-3">
+            <div className="text-center mb-4">
+              <label className="font-pixel text-purple-200 text-xs mr-2">
                 Forma:
               </label>
               <select
                 value={selectedVariety}
                 onChange={(e) => handleVarietyChange(e.target.value)}
-                className="font-pixel bg-purple-800/50 text-yellow-400 px-6 py-3 rounded-lg border-2 border-purple-500/50 hover:bg-purple-700/50 transition cursor-pointer"
+                className="font-pixel bg-purple-800/50 text-yellow-400 px-4 py-2 rounded-lg border-2 border-purple-500/50 hover:bg-purple-700/50 transition cursor-pointer text-sm"
               >
                 {varieties.map((variety) => (
                   <option key={variety.name} value={variety.name}>
@@ -390,7 +390,7 @@ export default function PokemonDetailPage() {
           )}
 
           {/* Layout Principal: Stats (Esquerda) + Pokémon (Centro) + Type Matchups (Direita) */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
             <PokemonStats stats={pokemon.baseStats} />
             <PokemonImage
               normalSprite={pokemon.normalSprite}
@@ -409,8 +409,8 @@ export default function PokemonDetailPage() {
 
           {/* Linha Evolutiva e Mega Evoluções lado a lado */}
           {(pokemon.evolutions.length > 1 || (pokemon.megaEvolutions && pokemon.megaEvolutions.length > 0)) && (
-            <div className="border-t-2 border-purple-500/30 pt-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="border-t-2 border-purple-500/30 pt-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* ESQUERDA: Linha Evolutiva */}
                 {pokemon.evolutions.length > 1 && (
                   <EvolutionChain evolutions={pokemon.evolutions} />
@@ -428,8 +428,8 @@ export default function PokemonDetailPage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-purple-950 text-white py-6 mt-auto">
-        <p className="text-center font-pixel text-lg">
+      <footer className="bg-purple-950 text-white py-4 mt-auto">
+        <p className="text-center font-pixel text-sm">
           © 2025 Gustavo Viana
         </p>
       </footer>

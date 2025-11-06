@@ -19,24 +19,24 @@ export default function PokemonImage({
 }: PokemonImageProps) {
   return (
     <div className="lg:col-span-1 flex flex-col items-center justify-center">
-      <div className="relative mb-6">
+      <div className="relative mb-3">
         <img
           src={isShiny ? shinySprite : normalSprite}
           alt={name}
-          className="w-50 h-50 object-contain"
+          className="w-40 h-40 object-contain"
         />
         <button
-          className="absolute top-4 right-4 bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-pixel px-4 py-2 rounded-lg shadow-lg text-sm transition transform hover:scale-105"
+          className="absolute top-2 right-2 bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-pixel px-3 py-1.5 rounded-lg shadow-lg text-xs transition transform hover:scale-105"
           onClick={() => setIsShiny(!isShiny)}
         >
           {isShiny ? '✨ SHINY' : '⭐ NORMAL'}
         </button>
       </div>
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         {types.map((type) => (
           <span
             key={type}
-            className={`${typeColors[type]} text-white font-pixel px-6 py-2 rounded-lg uppercase shadow-lg`}
+            className={`${typeColors[type]} text-white font-pixel px-4 py-1.5 rounded-lg uppercase shadow-lg text-sm`}
           >
             {type}
           </span>

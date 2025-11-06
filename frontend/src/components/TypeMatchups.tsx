@@ -12,22 +12,22 @@ export default function TypeMatchups({
   resistances,
 }: TypeMatchupsProps) {
   return (
-    <div className="lg:col-span-1 space-y-6">
+    <div className="lg:col-span-1 space-y-4">
       {/* Vantagens */}
       {Object.keys(advantages).length > 0 && (
         <div>
-          <h3 className="text-lg font-pixel text-yellow-400 mb-3 text-center drop-shadow-lg">
+          <h3 className="text-sm font-pixel text-yellow-400 mb-2 text-center drop-shadow-lg">
             VANTAGENS
           </h3>
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap gap-1.5 justify-center">
             {Object.entries(advantages).map(([type, multiplier]) => (
               <div key={type} className="text-center">
                 <span
-                  className={`${typeColors[type]} text-white font-pixel px-3 py-1 rounded-lg uppercase shadow-lg block mb-1 text-xs border-2 border-white/20`}
+                  className={`${typeColors[type]} text-white font-pixel px-2 py-0.5 rounded-lg uppercase shadow-lg block mb-0.5 text-[9px] border-2 border-white/20`}
                 >
                   {type}
                 </span>
-                <span className="font-pixel text-[10px] text-blue-400">
+                <span className="font-pixel text-[8px] text-blue-400">
                   {multiplier}x
                 </span>
               </div>
@@ -39,18 +39,18 @@ export default function TypeMatchups({
       {/* Fraquezas */}
       {Object.keys(weaknesses).length > 0 && (
         <div>
-          <h3 className="text-lg font-pixel text-yellow-400 mb-3 text-center drop-shadow-lg">
+          <h3 className="text-sm font-pixel text-yellow-400 mb-2 text-center drop-shadow-lg">
             FRAQUEZAS
           </h3>
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap gap-1.5 justify-center">
             {Object.entries(weaknesses).map(([type, multiplier]) => (
               <div key={type} className="text-center">
                 <span
-                  className={`${typeColors[type]} text-white font-pixel px-3 py-1 rounded-lg uppercase shadow-lg block mb-1 text-xs border-2 border-white/20`}
+                  className={`${typeColors[type]} text-white font-pixel px-2 py-0.5 rounded-lg uppercase shadow-lg block mb-0.5 text-[9px] border-2 border-white/20`}
                 >
                   {type}
                 </span>
-                <span className="font-pixel text-[10px] text-red-400">
+                <span className="font-pixel text-[8px] text-red-400">
                   {multiplier}x
                 </span>
               </div>
@@ -62,18 +62,18 @@ export default function TypeMatchups({
       {/* Resistências */}
       {Object.keys(resistances).length > 0 && (
         <div>
-          <h3 className="text-lg font-pixel text-yellow-400 mb-3 text-center drop-shadow-lg">
+          <h3 className="text-sm font-pixel text-yellow-400 mb-2 text-center drop-shadow-lg">
             RESISTÊNCIAS
           </h3>
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap gap-1.5 justify-center">
             {Object.entries(resistances).map(([type, multiplier]) => (
               <div key={type} className="text-center">
                 <span
-                  className={`${typeColors[type]} text-white font-pixel px-3 py-1 rounded-lg uppercase shadow-lg block mb-1 text-xs border-2 border-white/20`}
+                  className={`${typeColors[type]} text-white font-pixel px-2 py-0.5 rounded-lg uppercase shadow-lg block mb-0.5 text-[9px] border-2 border-white/20`}
                 >
                   {type}
                 </span>
-                <span className="font-pixel text-[10px] text-green-400">
+                <span className="font-pixel text-[8px] text-green-400">
                   {multiplier}x
                 </span>
               </div>
