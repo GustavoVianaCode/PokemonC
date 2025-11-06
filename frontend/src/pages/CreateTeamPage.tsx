@@ -349,14 +349,29 @@ export default function CreateTeamPage() {
     setShowMovesetModal(true);
   };
 
-  const handleMovesetSave = (config: MovesetConfig) => {
+  const handleMovesetSave = async (config: MovesetConfig) => {
     if (!selectedPokemonForMoveset) return;
 
     const emptyIndex = team.findIndex(slot => slot === null);
     if (emptyIndex !== -1) {
       const newTeam = [...team];
+      
+      // Buscar sprite correto (shiny ou normal)
+      let sprite = selectedPokemonForMoveset.sprite;
+      
+      if (config.shiny) {
+        try {
+          const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${selectedPokemonForMoveset.id}`);
+          sprite = response.data.sprites.front_shiny || response.data.sprites.front_default;
+        } catch (error) {
+          console.error('Erro ao buscar sprite shiny:', error);
+          // Mantém o sprite normal em caso de erro
+        }
+      }
+      
       newTeam[emptyIndex] = {
         ...selectedPokemonForMoveset,
+        sprite: sprite,
         moveset: config
       };
       setTeam(newTeam);

@@ -1,15 +1,22 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Modal, ModalHeader, ModalBody, Input, Select, Button } from '@/components/ui';
+import { pokemonDataService } from '@/services/pokemonDataService';
 
 interface Move {
   name: string;
   displayName: string;
+  power?: number;
+  accuracy?: number | true;
+  type?: string;
+  category?: string;
+  description?: string;
 }
 
 interface Ability {
   name: string;
   displayName: string;
+  description: string;
   isHidden: boolean;
 }
 
@@ -80,30 +87,48 @@ export default function MovesetModal({ pokemon, onSave, onCancel }: MovesetModal
   const fetchPokemonData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemon.id}`);
-      const data = response.data;
 
-      // Buscar moves
-      const moves = data.moves.map((m: any) => ({
-        name: m.move.name,
-        displayName: m.move.name.split('-').map((word: string) => 
-          word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ')
-      }));
-      setAvailableMoves(moves);
+      // NOVO: Buscar moves LEGAIS do Showdown
+      const [legalMoves, showdownAbilities] = await Promise.all([
+        pokemonDataService.getLegalMovesForPokemon(pokemon.name),
+        pokemonDataService.getPokemonAbilities(pokemon.name)
+      ]);
 
-      // Buscar abilities
-      const abilities = data.abilities.map((a: any) => ({
-        name: a.ability.name,
-        displayName: a.ability.name.split('-').map((word: string) => 
-          word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' '),
-        isHidden: a.is_hidden
+      // Formatar moves com informações completas
+      const formattedMoves = legalMoves.map(move => ({
+        name: move.name,
+        displayName: move.displayName,
+        power: move.basePower,
+        accuracy: move.accuracy === true ? 100 : move.accuracy,
+        type: move.type,
+        category: move.category,
+        description: move.shortDesc || move.desc || ''
       }));
-      setAvailableAbilities(abilities);
-      
-      if (abilities.length > 0) {
-        setSelectedAbility(abilities[0].name);
+
+      setAvailableMoves(formattedMoves);
+
+      // Usar abilities do Showdown se disponível, senão usar PokéAPI
+      if (showdownAbilities.length > 0) {
+        setAvailableAbilities(showdownAbilities);
+        setSelectedAbility(showdownAbilities[0].name);
+      } else {
+        // Fallback para PokéAPI
+        const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemon.id}`);
+        const data = response.data;
+        
+        const abilities = data.abilities.map((a: any) => ({
+          name: a.ability.name,
+          displayName: a.ability.name.split('-').map((word: string) => 
+            word.charAt(0).toUpperCase() + word.slice(1)
+          ).join(' '),
+          description: '',
+          isHidden: a.is_hidden
+        }));
+        
+        setAvailableAbilities(abilities);
+        if (abilities.length > 0) {
+          setSelectedAbility(abilities[0].name);
+        }
       }
 
     } catch (error) {
@@ -168,10 +193,16 @@ export default function MovesetModal({ pokemon, onSave, onCancel }: MovesetModal
 
       <ModalBody>
         {loading ? (
-          <div className="text-center py-4">
-            <p className="font-pixel text-purple-200 animate-pulse">
-              Carregando dados...
-            </p>
+          <div className="text-center py-8">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-16 h-16 border-4 border-purple-500 border-t-yellow-400 rounded-full animate-spin"></div>
+              <p className="font-pixel text-purple-200 text-sm">
+                📥 Carregando dados do Showdown...
+              </p>
+              <p className="font-pixel text-purple-400 text-xs">
+                Buscando moves legais e abilities
+              </p>
+            </div>
           </div>
         ) : (
           <>
@@ -187,17 +218,31 @@ export default function MovesetModal({ pokemon, onSave, onCancel }: MovesetModal
           {/* Grid: Ability, Item, Nature, Tera Type */}
           <div className="grid md:grid-cols-2 gap-4">
             {/* Ability */}
-            <Select
-              label="ABILITY:"
-              value={selectedAbility}
-              onChange={(e) => setSelectedAbility(e.target.value)}
-            >
-              {availableAbilities.map(ability => (
-                <option key={ability.name} value={ability.name}>
-                  {ability.displayName} {ability.isHidden ? '(Hidden)' : ''}
-                </option>
-              ))}
-            </Select>
+            <div>
+              <Select
+                label="ABILITY:"
+                value={selectedAbility}
+                onChange={(e) => setSelectedAbility(e.target.value)}
+              >
+                {availableAbilities.map(ability => (
+                  <option 
+                    key={ability.name} 
+                    value={ability.name}
+                    title={ability.description}
+                  >
+                    {ability.displayName} {ability.isHidden ? '(Hidden)' : ''}
+                  </option>
+                ))}
+              </Select>
+              {selectedAbility && (() => {
+                const selected = availableAbilities.find(a => a.name === selectedAbility);
+                return selected && selected.description ? (
+                  <p className="text-purple-300 text-[9px] mt-1 italic">
+                    💡 {selected.description}
+                  </p>
+                ) : null;
+              })()}
+            </div>
 
             {/* Item */}
             <Select
@@ -256,9 +301,14 @@ export default function MovesetModal({ pokemon, onSave, onCancel }: MovesetModal
 
           {/* Moves (4 slots) */}
           <div>
-            <h3 className="font-pixel text-yellow-400 text-sm mb-3">
-              MOVES (Selecione até 4):
-            </h3>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-pixel text-yellow-400 text-sm">
+                MOVES (Selecione até 4):
+              </h3>
+              <span className="font-pixel text-purple-300 text-xs">
+                📋 {availableMoves.length} moves disponíveis
+              </span>
+            </div>
             <div className="grid md:grid-cols-2 gap-4">
               {[0, 1, 2, 3].map(index => (
                 <div key={index}>
@@ -286,11 +336,28 @@ export default function MovesetModal({ pokemon, onSave, onCancel }: MovesetModal
                   >
                     <option value="">-- Nenhum --</option>
                     {filteredMoves(index).slice(0, 100).map(move => (
-                      <option key={move.name} value={move.name}>
+                      <option 
+                        key={move.name} 
+                        value={move.name}
+                        title={move.description}
+                      >
                         {move.displayName}
+                        {move.type && ` [${move.type}]`}
+                        {move.power && move.power > 0 ? ` | ${move.power} BP` : ''}
+                        {move.accuracy ? ` | ${move.accuracy}%` : ''}
                       </option>
                     ))}
                   </Select>
+                  
+                  {/* Informações do move selecionado */}
+                  {selectedMoves[index] && (() => {
+                    const selectedMove = availableMoves.find(m => m.name === selectedMoves[index]);
+                    return selectedMove && selectedMove.description ? (
+                      <p className="text-purple-300 text-[9px] mt-1 italic">
+                        💡 {selectedMove.description}
+                      </p>
+                    ) : null;
+                  })()}
                 </div>
               ))}
             </div>
